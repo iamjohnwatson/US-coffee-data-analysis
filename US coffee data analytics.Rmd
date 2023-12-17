@@ -1,0 +1,404 @@
+---
+title: "US coffee consumption analytics"
+author: "Akash Sriram"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## What's the analysis about?
+The analysis of American coffee taste and global coffee consumption was performed to practice and show off data analytics skills with the R programming language. The analysis looks at data on how many cups of coffee a consumer drinks per day, their preferred roast levels, where they drink coffee and how they brew coffee at home. The last piece of analysis was about the consumption of coffee globally.
+
+## Introducing the dataset
+The dataset was generated out of a survey and taste test performed by British YouTuber, James Hoffman. The data also includes survey results on a coffee taste test looking at roast levels and an experimental processing of some beans from Colombia as well. More than 4,000 people were surveyed, however, Hoffman, says the demographic is more representative of the audience for his YouTube channel with content mostly on coffee and less representative of the United States.
+
+## Data analysis
+
+### Cleaning the data and loading libraries
+The data was available on Hoffman's channel as a csv file, however, to be usable in R and easily readable, it required the renamed of several columns and removal of taste test data.
+
+```{r libraries, echo=FALSE}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(viridis)
+library(RColorBrewer)
+library(reshape2)
+library(readxl)
+library(plotly)
+```
+
+
+```{r data cleaning and transforming, echo=FALSE}
+# Read CSV file
+data_coffee <- read_csv("coffee_data.csv")
+
+# DATA CLEANING
+data_coffee <- data_coffee %>%
+  select(
+    -"Where do you typically drink coffee?",
+    -"How do you brew coffee at home?",
+    -"How else do you brew coffee at home?",
+    -"Where else do you purchase coffee?",
+    -"On the go, where do you typically purchase coffee?",
+    -"Please specify what your favorite coffee drink is",
+    -"What else do you add to your coffee?",
+    -"What kind of dairy do you add?",
+    -"What other flavoring do you use?",
+    -"What kind of sugar or sweetener do you add?",
+    -"What kind of flavorings do you add?",
+    -"Other reason for drinking coffee",
+    -"Do you usually add anything to your coffee?",
+    -"Why do you drink coffee?",
+    -"Gender (please specify)",
+    -"Ethnicity/Race (please specify)")
+
+
+# Removing columns on coffee taste test
+data_coffee <- data_coffee %>% 
+  select(
+    -"Coffee A - Bitterness",
+    -"Coffee A - Acidity",
+    -"Coffee A - Personal Preference",
+    -"Coffee A - Notes",
+    -"Coffee B - Bitterness",
+    -"Coffee B - Acidity",
+    -"Coffee B - Personal Preference",
+    -"Coffee B - Notes",
+    -"Coffee C - Bitterness",
+    -"Coffee C - Acidity",
+    -"Coffee C - Personal Preference",
+    -"Coffee C - Notes",
+    -"Coffee D - Bitterness",
+    -"Coffee D - Acidity",
+    -"Coffee D - Personal Preference",
+    -"Coffee D - Notes",
+    -"Before today's tasting, which of the following best described what kind of coffee you like?"
+    )
+
+
+# Commands to rename column names based on column number after removing columns
+colnames(data_coffee)[1] <- "ID"
+colnames(data_coffee)[2] <- "age"
+colnames(data_coffee)[3] <- "cups_per_day"
+colnames(data_coffee)[4] <- "drink_at_home"
+colnames(data_coffee)[5] <- "drink_at_office"
+colnames(data_coffee)[6] <- "drink_on_the_go"
+colnames(data_coffee)[7] <- "drink_at_cafe"
+colnames(data_coffee)[8] <- "drink_none"
+colnames(data_coffee)[9] <- "po_at_home"
+colnames(data_coffee)[10] <- "fp_at_home"
+colnames(data_coffee)[11] <- "esp_at_home"
+colnames(data_coffee)[12] <- "brewmachine_at_home"
+colnames(data_coffee)[13] <- "podmachine_at_home"
+colnames(data_coffee)[14] <- "instant_at_home"
+colnames(data_coffee)[15] <- "b2c_at_home"
+colnames(data_coffee)[16] <- "cb_at_home"
+colnames(data_coffee)[17] <- "coffee_extract_at_home"
+colnames(data_coffee)[18] <- "other_at_home"
+colnames(data_coffee)[19] <- "buy_at_chain"
+colnames(data_coffee)[20] <- "buy_at_local_cafe"
+colnames(data_coffee)[21] <- "buy_at_drive_thru"
+colnames(data_coffee)[22] <- "buy_at_specialty"
+colnames(data_coffee)[23] <- "buy_at_supermarket"
+colnames(data_coffee)[24] <- "buy_other"
+colnames(data_coffee)[25] <- "fav_drink"
+colnames(data_coffee)[26] <- "add_none"
+colnames(data_coffee)[27] <- "add_milk"
+colnames(data_coffee)[28] <- "add_sugar"
+colnames(data_coffee)[29] <- "add_flavor"
+colnames(data_coffee)[30] <- "add_other"
+colnames(data_coffee)[31] <- "milk_whole"
+colnames(data_coffee)[32] <- "milk_skim"
+colnames(data_coffee)[33] <- "milk_half_half"
+colnames(data_coffee)[34] <- "milk_creamer"
+colnames(data_coffee)[35] <- "milk_flavoured_creamer"
+colnames(data_coffee)[36] <- "milk_oat"
+colnames(data_coffee)[37] <- "milk_almond"
+colnames(data_coffee)[38] <- "milk_soy"
+colnames(data_coffee)[39] <- "milk_other"
+colnames(data_coffee)[40] <- "sugar_granulated"
+colnames(data_coffee)[41] <- "sugar_artificial"
+colnames(data_coffee)[42] <- "sugar_honey"
+colnames(data_coffee)[43] <- "sugar_maple_syrup"
+colnames(data_coffee)[44] <- "sugar_stevia"
+colnames(data_coffee)[45] <- "sugar_agave_nectar"
+colnames(data_coffee)[46] <- "sugar_brown_sugar"
+colnames(data_coffee)[47] <- "sugar_raw_turbinado"
+colnames(data_coffee)[48] <- "flavoring_vanilla"
+colnames(data_coffee)[49] <- "flavoring_caramel"
+colnames(data_coffee)[50] <- "flavoring_hazelnut"
+colnames(data_coffee)[51] <- "flavoring_cinnamon_ground_stick"
+colnames(data_coffee)[52] <- "flavoring_peppermint"
+colnames(data_coffee)[53] <- "flavoring_other"
+colnames(data_coffee)[54] <- "strength_preference"
+colnames(data_coffee)[55] <- "roast_preference"
+colnames(data_coffee)[56] <- "caffeine_preference"
+colnames(data_coffee)[57] <- "rate_coffee_expertise"
+colnames(data_coffee)[58] <- "wfh_wfo"
+colnames(data_coffee)[59] <- "spend_coffee_per_month"
+colnames(data_coffee)[60] <- "drink_cuz_taste_good"
+colnames(data_coffee)[61] <- "drink_cuz_need_caffeine"
+colnames(data_coffee)[62] <- "drink_cuz_need_ritual"
+colnames(data_coffee)[63] <- "drink_cuz_bathroom"
+colnames(data_coffee)[64] <- "drink_cuz_other_reasons"
+colnames(data_coffee)[65] <- "like_coffee"
+colnames(data_coffee)[66] <- "know_where_your_coffee_comes_from"
+colnames(data_coffee)[67] <- "most_paid_for_cup"
+colnames(data_coffee)[68] <- "most_willing_to_pay"
+colnames(data_coffee)[69] <- "getting_value_for_money_at_cafe"
+colnames(data_coffee)[70] <- "spend_on_equipment_in_5_years"
+colnames(data_coffee)[71] <- "getting_value_on_equipment_spend"
+colnames(data_coffee)[72] <- "gender"
+colnames(data_coffee)[73] <- "education_level"
+colnames(data_coffee)[74] <- "ethnicity_race"
+colnames(data_coffee)[75] <- "employment_status"
+colnames(data_coffee)[76] <- "no_of_children"
+colnames(data_coffee)[77] <- "political_affiliation"
+```
+
+### Where consumers drink coffee the most
+
+The vast majority of coffee drinkers have the beverage at home with a small number preferring to drink at a cafe and on the go. Since the pandemic, the trend of frequenting cafes has faded with regular consumers preferring to drink coffee at home over a cafe or while traveling or commuting.
+
+```{r coffee drinking location cleaning and transforming, echo=FALSE}
+# Create a new data frame with only the relevant columns for coffee drinking locations
+  location_data <- data_coffee[, c("drink_at_home", "drink_at_office", "drink_on_the_go", "drink_at_cafe")]
+  
+# Convert logical values to numeric (TRUE -> 1, FALSE -> 0)
+  location_data_numeric <- as.data.frame(sapply(location_data, as.numeric))
+  
+# Melt the data frame to long format for easier plotting
+  melted_data <- reshape2::melt(location_data_numeric)
+  
+# Filter out rows where value is 1
+  melted_data <- melted_data[melted_data$value != 0, ]
+  
+# Rename the columns and remove NA
+  melted_data$variable <- factor(melted_data$variable,
+                                 levels = c("drink_at_home", "drink_at_office", 
+                                            "drink_on_the_go", "drink_at_cafe"),
+                                 labels = c("Drink at home", "Drink at work", 
+                                            "Drink on the go", "Drink at a cafe"))
+  melted_data <- na.omit(melted_data)
+  
+# Create a bar chart of where coffee is consumed
+  bar_chart <- ggplot(melted_data, aes(x = variable, fill = factor(value))) +
+    geom_bar(show.legend = FALSE) +
+    labs(title = "Most consumers drink coffee at home and at work",
+         subtitle = "Coffee drinkers do not consume coffee on the go as much", 
+         x = "Location", y = "Respondents") +
+    scale_fill_discrete() +
+    theme_minimal() +
+    theme(plot.title = element_text(hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5))
+  
+# Convert ggplot to an interactive plot
+  interactive_plot_location <- ggplotly(bar_chart)
+```
+
+Find interactive chart below:
+
+```{r interactive_plot_location, echo=TRUE}
+interactive_plot_location
+```
+
+### Does age determine coffee consumption?
+
+Most consumers drinks one to two cups of coffee per day and the most amount of coffee being consumed by the 25-34 age group with a small deviation upwards as some in that age group even have three to four cups per day. Older consumers do not drink more than 2 cups of coffee.
+
+```{r, cups by age cleaning and transformation, echo=FALSE}
+# Sorting age and cups per day into a new dataframe
+cups_by_age <- data_coffee %>%
+  select(age, cups_per_day) %>%
+  arrange(age) %>%
+  count(age, cups_per_day)
+
+# Define the custom order for the 'age' variable
+custom_order <- c("<18 years old", "18-24 years old", "25-34 years old", "35-44 years old", 
+                  "45-54 years old", "55-64 years old", ">65 years old")
+
+# Convert 'age' to a factor with custom order
+cups_by_age$age <- factor(cups_by_age$age, levels = custom_order)
+
+# Heatmap of cups per day of coffee by age
+heatmap_plot <- ggplot(cups_by_age, aes(x = age, y = cups_per_day, fill = n)) +
+  geom_tile() +
+  labs(title = "Younger coffee drinkers consume 1-2 cups per day", 
+       subtitle = "Older consumers stick to fewer cups of coffee", 
+       x = "Age", y = "Cups per Day", fill = "Count") +
+  scale_fill_distiller(palette = "Spectral") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
+  
+# Convert ggplot to an interactive plot
+interactive_plot_heatmap <- ggplotly(heatmap_plot)
+```
+
+Find interactive chart below:
+
+```{r interactive_plot_heatmap, echo=TRUE}
+interactive_plot_heatmap
+```
+
+### What's the most common brewing method at home?
+
+Pour over and espressos are the most common brewing methods at home. A pour over set up is more inexpensive than some other brewing methods such as an espresso machine or a pod machine. However, the making espresso at home is also fairly common. This shows enthusiasts are happy to splurge on their brewing setup at home. 
+
+On the other hand, much fewer consumers prefer instant coffee and bean to cup machines, which are seen as brewing machines that deliver cups with less intricate flavor profiles.
+
+```{r brewing method data cleaning and transforming, echo=FALSE}
+# Create a new data frame with only the relevant columns for coffee brewing method at home
+  brewing_data <- data_coffee[, c("po_at_home", "fp_at_home", "esp_at_home", 
+                           "brewmachine_at_home", "podmachine_at_home","instant_at_home","b2c_at_home"
+                           ,"cb_at_home","coffee_extract_at_home","other_at_home")]
+  
+# Convert logical values to numeric (TRUE -> 1, FALSE -> 0)
+  brewing_data_numeric <- as.data.frame(sapply(brewing_data, as.numeric))
+  
+# Melt the data frame to long format for easier plotting
+  melted_brewing_data <- reshape2::melt(brewing_data_numeric)
+  
+# Rename the columns and remove NA
+  melted_brewing_data$variable <- factor(melted_brewing_data$variable,
+                                  levels = c("po_at_home", "fp_at_home", "esp_at_home", 
+                                            "brewmachine_at_home", "podmachine_at_home","instant_at_home","b2c_at_home"
+                                            ,"cb_at_home","coffee_extract_at_home","other_at_home"),
+                                 labels = c("Pour over", "French Press", "Espresso", "Brewing machine", "Pod machine",
+                                            "Instant coffee","Bean to cup", "Cold brew","Coffee extract","Other"))
+  melted_brewing_data <- na.omit(melted_brewing_data)
+  filtered_brewing_data <- melted_brewing_data[melted_brewing_data$value == 1, ]
+  
+# Create a bar chart of brew methods at home
+  bar_brewing_chart <- ggplot(filtered_brewing_data, aes(x = variable, fill = factor(value))) +
+    geom_bar(show.legend = FALSE) +
+    labs(title = "Pour over is the most popular brewing method at home",
+         subtitle = "Very few prefer instant coffee, bean to cup machines and coffee extracts", 
+         x = "Brewing method", y = "Respondents") +
+    scale_fill_discrete() +
+    theme_minimal() +
+    theme(plot.title = element_text(hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5))
+
+# Convert ggplot to an interactive plot
+  interactive_plot_brewing <- ggplotly(bar_brewing_chart)
+```
+
+Find interactive chart below:
+
+```{r interactive_plot_brewing, echo=TRUE}
+interactive_plot_brewing
+```
+
+### Roast preference of coffee drinkers
+
+Most coffee drinkers prefer light and medium roasts with much fewer preferring dark roast coffees. However, when distributed by age, it becomes clearer that older consumers have a slightly higher preference of medium and darker roasts than younger consumers. 
+
+This shows the effects of the third wave of coffee that started at the turn of the century. The third wave of coffee is associated with the concept of specialty coffee which focuses on craft, quality, with origin flavor characteristics of coffee taking the limelight. Light roasts preserve origin characteristics better than darker roasts.
+
+```{r roast preference data cleanign and transforming, echo=FALSE}
+#Sorting roast preference by age in a new dataframe
+roast_by_age <- data_coffee %>%
+    select(age, roast_preference) %>%
+    arrange(age) %>%
+    count(age, roast_preference)
+
+# Remove rows with blank values in any column
+roast_by_age <- subset(roast_by_age, apply(roast_by_age, 1, function(x) all(nzchar(x))))
+
+# Sort the roast_preference variable according to a specific order
+roast_by_age <- roast_by_age %>%
+  mutate(roast_preference = fct_relevel(roast_preference, "Light", "Medium", "Dark"))
+
+# Filter out the roast_preference values that you want to exclude
+roast_by_age_filtered <- roast_by_age %>%
+  filter(!roast_preference %in% c("Blonde", "French", "Italian", "Nordic"))
+
+# Create the stacked bar chart for roast preference vs age
+stacked_bar_chart <- ggplot(roast_by_age_filtered, aes(x = roast_preference, y = n, fill = age)) +
+  geom_col() +
+  scale_fill_discrete(name = "Age") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  labs(x = "Roast Preference", y = "Count", title = "Younger coffee drinkers prefer lighter roasts", 
+       subtitle = "Consumers shy away from darker roasts, which have higher bitterness levels")
+
+# Convert ggplot to an interactive plot
+interactive_plot <- ggplotly(stacked_bar_chart)
+```
+
+Find interactive chart below:
+
+```{r interactive_plot, echo=TRUE}
+interactive_plot
+```
+
+### Where consumers buy their coffee
+
+The vast majority of consumers buy coffee at specialty coffee shops, local cafes or coffee chains. This again shows the enthusiast nature of coffee drinkers of the sample used in the survey.
+
+```{r consuming purchase location, echo=FALSE}
+#Analyzing where consumers buy their coffee
+purchase_data <- data_coffee[, c("buy_at_chain","buy_at_local_cafe","buy_at_drive_thru",
+                          "buy_at_specialty","buy_at_supermarket","buy_other")]
+
+# Convert logical values to numeric (TRUE -> 1, FALSE -> 0)
+purchase_data_numeric <- as.data.frame(sapply(purchase_data, as.numeric))
+
+# Melt the data frame to long format for easier plotting
+melted_purchase_data <- reshape2::melt(purchase_data_numeric)
+
+# Rename the columns and remove NA
+melted_purchase_data$variable <- factor(melted_purchase_data$variable,
+                                        levels = c("buy_at_chain","buy_at_local_cafe","buy_at_drive_thru",
+                                                   "buy_at_specialty","buy_at_supermarket","buy_other"),
+                                        labels = c("Coffee chain","Local cafe","Drive thru","Specialty coffee shop",
+                                                   "Supermarket","Other"))
+melted_purchase_data <- na.omit(melted_purchase_data)
+filtered_purchase_data <- melted_purchase_data[melted_purchase_data$value == 1, ]
+
+# Calculate counts for each level of the variable
+level_counts <- table(filtered_purchase_data$variable)
+
+# Sort the levels based on counts in descending order
+sorted_levels <- names(sort(level_counts, decreasing = TRUE))
+
+# Define a gradient of purple colors
+purple_gradient <- c("#b2182b", "#d6604d", "#f4a582", "#92c5de", "#4393c3", "#2166ac")
+
+# Create a bar chart using ggplot2 with a gradient of purple
+bar_purchase_chart <- ggplot(filtered_purchase_data, aes(x = factor(variable, levels = sorted_levels), fill = variable)) +
+  geom_bar(show.legend = FALSE) +
+  labs(title = "Most consumers buy at a specialty coffee shop or a local cafe",
+       subtitle = "Very few purchase their coffee at a supermarket", 
+       x = "Where consumers buy coffee", y = "Respondents") +
+  scale_fill_manual(values = rev(purple_gradient)) +  # Reverse gradient for darkest color
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
+
+# Convert ggplot to an interactive plot
+interactive_plot_purchase <- ggplotly(bar_purchase_chart)
+```
+
+Find interactive chart below:
+
+```{r interactive_plot_purchase, echo=TRUE}
+interactive_plot_purchase
+```
+
+### Global coffee consumption data
+
+Among the countries part of the dataset collected by the United States Department of Agriculture, the United States consumes the highest amount of coffee with Brazil coming a close second.
+
+Find interactive Tableau viz below:
+
+#### Tableau Visualization
+
+<iframe seamless frameborder="0" src="https://public.tableau.com/views/GlobalCoffeeConsumption_17027092414650/Sheet1?:language=en-US&publish=yes&:display_count=n&:origin=viz_share_link" width="800" height="600"></iframe>
