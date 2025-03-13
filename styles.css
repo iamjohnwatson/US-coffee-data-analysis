@@ -1,0 +1,42 @@
+/* Same as previous response */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Avenir', 'Helvetica', sans-serif;
+  background: linear-gradient(135deg, #FFF8DC 0%, #D2B48C 100%);
+  color: #2F1B0D;
+  line-height: 1.6;
+  padding: 20px;
+}
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+header { text-align: center; margin-bottom: 60px; }
+h1 { font-size: 3rem; font-weight: 900; color: #8B4513; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+.subtitle { font-size: 1.4rem; color: #A0522D; font-style: italic; }
+.byline { font-size: 1rem; color: #666; margin-top: 10px; }
+section { margin-bottom: 80px; text-align: center; }
+h2 { font-size: 2.2rem; color: #8B4513; margin-bottom: 20px; font-weight: 700; }
+p { font-size: 1.1rem; max-width: 700px; margin: 0 auto 20px; }
+.plot-container {
+  margin: 40px auto;
+  max-width: 800px;
+  padding: 20px;
+  background: #FFF8DC;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease;
+}
+.plot-container:hover { transform: translateY(-5px); }
+footer { text-align: center; font-size: 1rem; color: #666; padding-top: 40px; }
+@media (max-width: 768px) {
+  h1 { font-size: 2.2rem; }
+  h2 { font-size: 1.8rem; }
+  p { font-size: 1rem; }
+  .container { padding: 20px; }
+  .plot-container { max-width: 100%; }
+}
